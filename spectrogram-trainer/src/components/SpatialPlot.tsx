@@ -9,8 +9,16 @@ import {
   Legend,
 } from 'chart.js'
 import type { Point } from '../utils/simulation'
+import arrowPlugin from '../utils/chartjs-plugin-arrow'
 
-ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
+ChartJS.register(
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  arrowPlugin,
+)
 
 interface SpatialPlotProps {
   paths: {
