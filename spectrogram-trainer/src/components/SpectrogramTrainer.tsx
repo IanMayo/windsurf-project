@@ -1,23 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { useDebounce } from '../hooks/useDebounce'
 import Controls from './Controls'
-import {
-  calculateShipPaths,
-  calculateSpectrogramData,
-} from '../utils/simulation'
-import SpatialPlot from './SpatialPlot'
 import SpectrogramPlot from './SpectrogramPlot'
-import type { ShipParams, Point } from '../utils/simulation'
-
-interface ShipPaths {
-  sensorPath: Point[];
-  sourcePath: Point[];
-}
-
-interface SpectrogramDataPoint {
-  time: number;
-  frequency: number;
-}
+import SpatialPlot from './SpatialPlot'
+import { ShipParams, Point, simulate, SpectrogramData } from '../utils/simulation'
+import { useDebounce } from '../hooks/useDebounce'
 
 const SpectrogramTrainer: React.FC = () => {
   const [params, setParams] = useState<ShipParams>({
@@ -25,44 +11,36 @@ const SpectrogramTrainer: React.FC = () => {
     sensorCourse: 0,
     sourceSpeed: 15,
     sourceCourse: 325,
-    sourceInitialRange: 12,
     sourceInitialBearing: 45,
-    sourceFrequency: 500, // Default frequency in Hz
+    sourceInitialRange: 12,
+    sourceFrequency: 400,
   })
 
-  const [shipPaths, setShipPaths] = useState<ShipPaths>({ sensorPath: [], sourcePath: [] })
-  const [spectrogramData, setSpectrogramData] = useState<SpectrogramDataPoint[]>([])
-    const [duration, setDuration] = useState(60) // minutes
+  const [duration, setDuration] = useState(240) // in minutes
+
+  const [sensorPath, setSensorPath] = useState<Point[]>([])
+  const [sourcePath, setSourcePath] = useState<Point[]>([])
+  const [spectrogramData, setSpectrogramData] = useState<SpectrogramData>({ labels: [], datasets: [] })
 
   const debouncedParams = useDebounce(params, 50)
   const debouncedDuration = useDebounce(duration, 50)
 
   useEffect(() => {
-    const simulationDurationSeconds = debouncedDuration * 60
-    const timeStep = 60 // 1 minute in seconds
-    const paths = calculateShipPaths(debouncedParams, simulationDurationSeconds, timeStep)
-    const specData = calculateSpectrogramData(
-      debouncedParams,
-      paths.sensorPath,
-      paths.sourcePath,
-      timeStep,
-    )
-    setShipPaths(paths)
-    setSpectrogramData(specData)
+    const { sensorPath, sourcePath, spectrogramData } = simulate(debouncedParams, debouncedDuration)
+    setSensorPath(sensorPath)
+    setSourcePath(sourcePath)
+    setSpectrogramData(spectrogramData)
   }, [debouncedParams, debouncedDuration])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <h1>Spectrogram Trainer</h1>
       <Controls params={params} setParams={setParams} duration={duration} setDuration={setDuration} />
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, maxHeight: '50vh' }}>
         <div style={{ flex: 1, border: '1px solid black', margin: '10px' }}>
-          <h2>Spectrogram</h2>
           <SpectrogramPlot data={spectrogramData} />
         </div>
         <div style={{ flex: 1, border: '1px solid black', margin: '10px' }}>
-          <h2>Spatial Plot</h2>
-          <SpatialPlot paths={shipPaths} />
+          <SpatialPlot sensorPath={sensorPath} sourcePath={sourcePath} />
         </div>
       </div>
     </div>
@@ -70,4 +48,3 @@ const SpectrogramTrainer: React.FC = () => {
 }
 
 export default SpectrogramTrainer
-
