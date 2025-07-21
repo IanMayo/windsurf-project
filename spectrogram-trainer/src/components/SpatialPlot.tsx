@@ -49,25 +49,43 @@ const SpatialPlot: React.FC<SpatialPlotProps> = ({ paths }) => {
     ],
   }
 
+      const allPoints = [...paths.sensorPath, ...paths.sourcePath];
+  const x_coords = allPoints.map((p) => p.x);
+  const y_coords = allPoints.map((p) => p.y);
+
+  const minX = Math.min(...x_coords);
+  const maxX = Math.max(...x_coords);
+  const minY = Math.min(...y_coords);
+  const maxY = Math.max(...y_coords);
+
+  const min = Math.min(minX, minY);
+  const max = Math.max(maxX, maxY);
+
+  const padding = (max - min) * 0.1; // 10% padding
+
   const options = {
+    aspectRatio: 1,
     scales: {
       x: {
         type: 'linear' as const,
         position: 'bottom' as const,
+        min: min - padding,
+        max: max + padding,
         title: {
           display: true,
-          text: 'X (meters)',
+          text: 'X (km)',
         },
       },
       y: {
         type: 'linear' as const,
+        min: min - padding,
+        max: max + padding,
         title: {
           display: true,
-          text: 'Y (meters)',
+          text: 'Y (km)',
         },
       },
     },
-    aspectRatio: 1,
     maintainAspectRatio: true,
   }
 

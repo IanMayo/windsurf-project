@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import Controls from './Controls'
 import {
   calculateShipPaths,
@@ -31,21 +32,24 @@ const SpectrogramTrainer: React.FC = () => {
 
   const [shipPaths, setShipPaths] = useState<ShipPaths>({ sensorPath: [], sourcePath: [] })
   const [spectrogramData, setSpectrogramData] = useState<SpectrogramDataPoint[]>([])
-  const [duration, setDuration] = useState(60) // minutes
+    const [duration, setDuration] = useState(60) // minutes
+
+  const debouncedParams = useDebounce(params, 50)
+  const debouncedDuration = useDebounce(duration, 50)
 
   useEffect(() => {
-    const simulationDurationSeconds = duration * 60
+    const simulationDurationSeconds = debouncedDuration * 60
     const timeStep = 60 // 1 minute in seconds
-    const paths = calculateShipPaths(params, simulationDurationSeconds, timeStep)
+    const paths = calculateShipPaths(debouncedParams, simulationDurationSeconds, timeStep)
     const specData = calculateSpectrogramData(
-      params,
+      debouncedParams,
       paths.sensorPath,
       paths.sourcePath,
       timeStep,
     )
     setShipPaths(paths)
     setSpectrogramData(specData)
-  }, [params, duration])
+  }, [debouncedParams, debouncedDuration])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
