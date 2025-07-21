@@ -374,6 +374,11 @@
     "@eslint/core" "^0.15.1"
     levn "^0.4.1"
 
+"@fseehawer/react-circular-slider@^3.2.7":
+  version "3.2.7"
+  resolved "https://registry.yarnpkg.com/@fseehawer/react-circular-slider/-/react-circular-slider-3.2.7.tgz#16a64a7004bb69e4d966a6d518eac179b052c3c5"
+  integrity sha512-4WfS+p8kNGv62u2YIr9tawmxbxWg3lNJBHfVLxV+dBnkFTei3G7Y3vbZqpgZvzuSRJyvtbcZDJ7RrmwwqD/Gcg==
+
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
