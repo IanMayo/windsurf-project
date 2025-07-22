@@ -2,8 +2,14 @@ import React, { useState, useEffect } from 'react'
 import Controls from './Controls'
 import SpectrogramPlot from './SpectrogramPlot'
 import SpatialPlot from './SpatialPlot'
-import { ShipParams, Point, simulate, SpectrogramData } from '../utils/simulation'
+import type { ShipParams, Point } from '../utils/simulation'
+import { calculateShipPaths, calculateSpectrogramData } from '../utils/simulation'
 import { useDebounce } from '../hooks/useDebounce'
+
+interface SpectrogramDataPoint {
+  time: number
+  frequency: number
+}
 
 const SpectrogramTrainer: React.FC = () => {
   const [params, setParams] = useState<ShipParams>({
@@ -16,31 +22,33 @@ const SpectrogramTrainer: React.FC = () => {
     sourceFrequency: 400,
   })
 
-  const [duration, setDuration] = useState(240) // in minutes
+  const [duration, setDuration] = useState(3600) // in seconds
+  const [timeStep, setTimeStep] = useState(1) // in minutes
 
   const [sensorPath, setSensorPath] = useState<Point[]>([])
   const [sourcePath, setSourcePath] = useState<Point[]>([])
-  const [spectrogramData, setSpectrogramData] = useState<SpectrogramData>({ labels: [], datasets: [] })
+  const [spectrogramData, setSpectrogramData] = useState<SpectrogramDataPoint[] | null>(null)
 
   const debouncedParams = useDebounce(params, 50)
   const debouncedDuration = useDebounce(duration, 50)
 
   useEffect(() => {
-    const { sensorPath, sourcePath, spectrogramData } = simulate(debouncedParams, debouncedDuration)
+        const { sensorPath, sourcePath } = calculateShipPaths(debouncedParams, debouncedDuration, timeStep)
+    const spectrogramData = calculateSpectrogramData(debouncedParams, sensorPath, sourcePath, timeStep)
     setSensorPath(sensorPath)
     setSourcePath(sourcePath)
     setSpectrogramData(spectrogramData)
-  }, [debouncedParams, debouncedDuration])
+  }, [debouncedParams, debouncedDuration, timeStep])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Controls params={params} setParams={setParams} duration={duration} setDuration={setDuration} />
+      <Controls params={params} setParams={setParams} duration={duration} setDuration={setDuration} timeStep={timeStep} setTimeStep={setTimeStep} />
       <div style={{ display: 'flex', flex: 1, maxHeight: '50vh' }}>
         <div style={{ flex: 1, border: '1px solid black', margin: '10px' }}>
-          <SpectrogramPlot data={spectrogramData} />
+          {spectrogramData && <SpectrogramPlot data={spectrogramData} />}
         </div>
         <div style={{ flex: 1, border: '1px solid black', margin: '10px' }}>
-          <SpatialPlot sensorPath={sensorPath} sourcePath={sourcePath} />
+          <SpatialPlot paths={{ sensorPath, sourcePath }} />
         </div>
       </div>
     </div>
